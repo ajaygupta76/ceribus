@@ -227,7 +227,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
   <span class="tagline-top">all else being equal</span>
   <div class="mode-toggle">
     <button class="mode-btn active" id="btnPredict" onclick="setMode('predict')">Predict</button>
-    <button class="mode-btn" id="btnLab" onclick="setMode('lab')">Lab</button>
+    <button class="mode-btn" id="btnLab" onclick="unlockLab()">Lab</button>
   </div>
 </div>
 
@@ -425,7 +425,11 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 </div>
 
 <script>
-// ── CONFIG ─────────────────────────────────────────────────────────────────
+function unlockLab(){
+  const pw = prompt('Enter Lab password:');
+  if(pw === 'yourpassword') setMode('lab');
+}
+  // ── CONFIG ─────────────────────────────────────────────────────────────────
 // Replace with your Cloudflare Worker URL after deploying worker.js
 const PROXY_URL = 'https://ceribus-proxy.ajaygupta76.workers.dev';
 // ───────────────────────────────────────────────────────────────────────────
