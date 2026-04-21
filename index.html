@@ -267,6 +267,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
   </div>
 
   <button class="run-btn" id="p_runBtn" onclick="pRun()">Forecast →</button>
+  <button class="sec-btn" style="border-color:var(--acc2);color:var(--acc2);margin-top:8px" onclick="showUpload('p')">↑ Upload forecast from Claude's response</button>
   <div class="err-box" id="p_err"></div>
 
   <div class="waiting-card" id="p_waiting">
@@ -367,6 +368,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
     </div>
     <input type="text" id="l_lbl" placeholder="Label this run — e.g. Base case, +BookMyShow, Bull case…" style="margin-bottom:10px;border-radius:8px;padding:8px 11px;width:100%;background:var(--surf2);border:0.5px solid var(--bd);color:var(--t);font-size:13px;font-family:'DM Sans',sans-serif;outline:none"/>
     <button class="run-btn" id="l_runBtn" onclick="lRun()">Run Ceribus forecast →</button>
+    <button class="sec-btn" style="border-color:var(--acc2);color:var(--acc2);margin-top:8px" onclick="showUpload('l')">↑ Upload forecast from Claude's response</button>
     <button class="sec-btn" id="l_pub" onclick="doPublish()">Publish this variable set to Predict</button>
     <div class="err-box" id="l_err"></div>
     <div class="waiting-card" id="l_waiting">
@@ -425,13 +427,9 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 </div>
 
 <script>
-function unlockLab(){
-  const pw = prompt('Enter Lab password:');
-  if(pw === 'labmode') setMode('lab');
-}
-  // ── CONFIG ─────────────────────────────────────────────────────────────────
+// ── CONFIG ─────────────────────────────────────────────────────────────────
 // Replace with your Cloudflare Worker URL after deploying worker.js
-const PROXY_URL = 'https://ceribus-proxy.ajaygupta76.workers.dev';
+const PROXY_URL = 'https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev';
 // ───────────────────────────────────────────────────────────────────────────
 
 const PRESETS = {
@@ -490,6 +488,12 @@ function setMode(m){
   document.getElementById('btnLab').classList.toggle('active',m==='lab');
   document.getElementById('modePredict').style.display=m==='predict'?'block':'none';
   document.getElementById('modeLab').style.display=m==='lab'?'block':'none';
+}
+
+function unlockLab(){
+  const pw=prompt('Enter Lab password:');
+  if(pw==='labmode') setMode('lab');
+  else if(pw!==null) alert('Incorrect password.');
 }
 
 function selCat(el){
@@ -782,6 +786,53 @@ function swTab(id,el){
 }
 
 renderPSliders(); lPreset();
+
+// ── UPLOAD MODAL ──────────────────────────────────────────────────────────────
+let activeUploadNs='p';
+function showUpload(ns){
+  activeUploadNs=ns;
+  document.getElementById('uploadInput').value='';
+  document.getElementById('uploadErr').style.display='none';
+  document.getElementById('uploadModal').style.display='flex';
+}
+function closeUpload(){document.getElementById('uploadModal').style.display='none';}
+function doUpload(){
+  const raw=document.getElementById('uploadInput').value.trim();
+  const err=document.getElementById('uploadErr');
+  err.style.display='none';
+  try{
+    const clean=raw.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+    const r=JSON.parse(clean);
+    if(r.point_estimate===undefined)throw new Error('Not a Ceribus forecast');
+    const ns=activeUploadNs;
+    const px=ns+'_';
+    if(ns==='l'){
+      const lm=window._lm||{sub:'',met:'',unit:'',ctx:'',lbl:'Uploaded',cat:'',vars:[]};
+      renderResult(r,px,lm.sub,lm.met,lm.unit);
+      history.unshift({id:Date.now(),label:lm.lbl,subject:lm.sub,metric:lm.met,unit:lm.unit,context:lm.ctx,cat:lm.cat,vars:lm.vars,result:r,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+      updHistory();updCompare();
+    } else {
+      const m=curMeta||{subject:'',metric:'',unit:''};
+      renderResult(r,px,m.subject,m.metric,m.unit);
+    }
+    closeUpload();
+  }catch(e){err.style.display='block';}
+}
 </script>
+
+<!-- Upload modal -->
+<div id="uploadModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:999;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--surf);border:0.5px solid var(--bd2);border-radius:14px;padding:1.5rem;width:100%;max-width:500px">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--t);margin-bottom:6px">Upload forecast</div>
+    <div style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.6">Copy the JSON code block from Claude's response and paste it here.</div>
+    <textarea id="uploadInput" style="width:100%;min-height:120px;font-family:'DM Mono',monospace;font-size:12px;background:var(--surf2);color:var(--t);border:0.5px solid var(--bd2);border-radius:8px;padding:10px;outline:none;resize:vertical" placeholder='{"point_estimate":"₹920 Cr","range_low":...}'></textarea>
+    <div id="uploadErr" style="font-size:12px;color:var(--danger);margin-top:6px;display:none">Invalid JSON — copy the full code block from Claude's response.</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="doUpload()" style="flex:1;padding:11px;background:var(--acc2);color:#0d0d14;font-size:14px;font-weight:500;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif">Load forecast</button>
+      <button onclick="closeUpload()" style="padding:11px 20px;background:none;color:var(--t2);font-size:14px;border:0.5px solid var(--bd2);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
