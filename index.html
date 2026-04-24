@@ -246,8 +246,8 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
     <div class="cat-card active" data-cat="movie" onclick="selCat(this)"><span class="cat-icon">🎬</span><div class="cat-name">Movie</div><div class="cat-metric">Box office gross</div></div>
     <div class="cat-card" data-cat="book" onclick="selCat(this)"><span class="cat-icon">📖</span><div class="cat-name">Book</div><div class="cat-metric">Copies sold</div></div>
     <div class="cat-card" data-cat="company" onclick="selCat(this)"><span class="cat-icon">🏢</span><div class="cat-name">Company</div><div class="cat-metric">EBITDA</div></div>
-    <div class="cat-card" data-cat="stock" onclick="selCat(this)"><span class="cat-icon">📈</span><div class="cat-name">Stock</div><div class="cat-metric">12-month return</div></div>
-    <div class="cat-card" data-cat="team" onclick="selCat(this)"><span class="cat-icon">⚡</span><div class="cat-name">Sports team</div><div class="cat-metric">Season win rate</div></div>
+    <div class="cat-card" data-cat="politics" onclick="selCat(this)"><span class="cat-icon">🗳️</span><div class="cat-name">Political party</div><div class="cat-metric">Seats won</div></div>
+    <div class="cat-card" data-cat="team" onclick="selCat(this)"><span class="cat-icon">⚡</span><div class="cat-name">Sports team</div><div class="cat-metric">Win probability</div></div>
     <div class="cat-card" data-cat="music" onclick="selCat(this)"><span class="cat-icon">🎵</span><div class="cat-name">Music artist</div><div class="cat-metric">Streams</div></div>
   </div>
 
@@ -336,7 +336,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
           <option value="movie">Movie</option>
           <option value="book">Book</option>
           <option value="company">Company</option>
-          <option value="stock">Stock</option>
+          <option value="politics">Political party</option>
           <option value="team">Sports team</option>
           <option value="music">Music artist</option>
         </select>
@@ -433,15 +433,48 @@ const PROXY_URL = 'https://ceribus-proxy.ajaygupta76.workers.dev';
 // ───────────────────────────────────────────────────────────────────────────
 
 const PRESETS = {
-  movie:{metric:'Worldwide box office gross',unit:'INR',context:'Total theatrical run, worldwide',vars:[{name:'Director reputation',val:60},{name:'Cast star power',val:55},{name:'Production budget',val:50},{name:'Script quality',val:65},{name:'Marketing spend',val:55},{name:'OTT deal value',val:50},{name:'Franchise recognition',val:50}]},
-  book:{metric:'First-year copies sold',unit:'copies',context:'Global, physical + digital combined',vars:[{name:'Author track record',val:50},{name:'Genre market demand',val:60},{name:'Marketing budget',val:40},{name:'Manuscript quality',val:70},{name:'Publisher tier',val:60}]},
-  company:{metric:'12-month EBITDA',unit:'USD',context:'First full fiscal year',vars:[{name:'Team strength',val:65},{name:'Market size TAM',val:55},{name:'Product-market fit',val:50},{name:'Funding runway',val:45},{name:'Revenue growth',val:60}]},
-  stock:{metric:'12-month price return',unit:'%',context:'Total return including dividends',vars:[{name:'Fundamentals strength',val:60},{name:'Price momentum',val:50},{name:'Sector health',val:55},{name:'Macro environment',val:50},{name:'Analyst consensus',val:60}]},
-  team:{metric:'Season win rate',unit:'%',context:'Regular season only',vars:[{name:'Squad quality',val:65},{name:'Coaching quality',val:60},{name:'Recent form',val:55},{name:'Squad depth',val:50},{name:'Home advantage',val:55}]},
-  music:{metric:'Album Spotify streams',unit:'streams',context:'Till date streams',vars:[{name:'Raw talent',val:72},{name:'Originality',val:60},{name:'Social following',val:75},{name:'Label support',val:65},{name:'Release timing',val:65},{name:'Age of artist',val:50},{name:'No of previous albums',val:50},{name:'Streams of last album',val:50}]}
+  movie:{metric:'Worldwide box office gross',unit:'INR',context:'Total theatrical run, worldwide',vars:[
+    {name:'Director reputation',val:60},{name:'Cast star power',val:55},{name:'Production budget',val:50},
+    {name:'Script quality',val:65},{name:'Marketing spend',val:55},{name:'OTT deal value',val:50},
+    {name:'Franchise recognition',val:50},{name:'BookMyShow score',val:50},{name:'Rotten Tomatoes',val:50}
+  ]},
+  book:{metric:'First-year copies sold',unit:'copies',context:'Global, physical + digital combined',vars:[
+    {name:'Author track record',val:60},{name:'Average sales of the genre',val:55},
+    {name:'Goodreads score',val:65},{name:'Topic relevance to readers',val:60},{name:'Amazon searches',val:50}
+  ]},
+  company:{metric:'12-month EBITDA',unit:'USD',context:'First full fiscal year',vars:[
+    {name:'Last year growth',val:55},{name:'Industry average growth',val:50},
+    {name:'Competitive position',val:55},{name:'Expected GDP growth',val:50},
+    {name:'CEO track record',val:60},{name:'Amazon product reviews',val:50},
+    {name:'Hiring intensity on LinkedIn',val:50},{name:'Glassdoor rating',val:55}
+  ]},
+  politics:{metric:'Seats won in election',unit:'seats',context:'General election, all constituencies',vars:[
+    {name:'Seats in last election',val:60},{name:'% of seats participating in',val:55},
+    {name:'Participating voter %',val:55},{name:'Media analyst views',val:50},
+    {name:'Social media positivity',val:50},{name:'Google search popularity',val:50}
+  ]},
+  team:{metric:'Win probability',unit:'%',context:'Single match result',vars:[
+    {name:'Win rate last 5 games',val:60},{name:'Win rate vs opposition last 5',val:55},
+    {name:'Win rate at venue',val:55},{name:'Form of top 3 players',val:65},
+    {name:'Team world ranking',val:60},{name:'Opposition world ranking',val:45}
+  ]},
+  music:{metric:'Album Spotify streams',unit:'streams',context:'Till date streams',vars:[
+    {name:'Raw talent',val:72},{name:'Originality',val:60},{name:'Social following',val:75},
+    {name:'Label support',val:65},{name:'Release timing',val:65},{name:'Age of artist',val:50},
+    {name:'No of previous albums',val:50},{name:'Streams of last album',val:50}
+  ]}
 };
 
 const MUSIC_MODES = ['slider','slider','slider','slider','slider','abs','abs','abs'];
+const TEAM_MODES  = ['slider','slider','slider','slider','abs','abs'];
+const POLITICS_MODES = ['abs','abs','abs','slider','slider','slider'];
+
+function getDefaultModes(c){
+  if(c==='music')   return[...MUSIC_MODES];
+  if(c==='team')    return[...TEAM_MODES];
+  if(c==='politics')return[...POLITICS_MODES];
+  return(PRESETS[c]||{vars:[]}).vars.map(()=>'slider');
+}
 
 let cat='movie', labVars=[], labModes=[], history=[], cmpSel=[];
 let publishedModel=null, fbRating=0, feedbackLog=[], curMeta=null, pModes=[];
@@ -509,7 +542,7 @@ function getPVL(){return(publishedModel&&publishedModel.cat===cat)?publishedMode
 
 function renderPSliders(){
   const vars=getPVL(), banner=document.getElementById('pubBanner'), title=document.getElementById('p_varsTitle');
-  while(pModes.length<vars.length)pModes.push(vars[pModes.length].defaultMode||'slider');
+  while(pModes.length<vars.length)pModes.push(getDefaultModes(cat)[pModes.length]||'slider');
   if(publishedModel&&publishedModel.cat===cat){
     banner.classList.add('show');
     document.getElementById('pubBannerTxt').textContent='Using published Lab model — '+vars.length+' variables';
@@ -569,7 +602,7 @@ function lPreset(){
     document.getElementById('l_unit').value=p.unit;
     document.getElementById('l_ctx').value=p.context;
     labVars=p.vars.map(v=>({name:v.name,val:v.val||50,absVal:''}));
-    labModes=c==='music'?[...MUSIC_MODES]:labVars.map(()=>'slider');
+    labModes=getDefaultModes(c);
   }
   lRenderAll();
 }
