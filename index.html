@@ -242,6 +242,16 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 
   <div class="pub-banner" id="pubBanner"><div class="pub-dot"></div><span id="pubBannerTxt">Using published model</span></div>
 
+  <div style="background:var(--surf2);border:0.5px solid var(--bd);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:14px;align-items:flex-start">
+    <div style="font-size:22px;flex-shrink:0;margin-top:2px">🔮</div>
+    <div>
+      <div style="font-size:14px;font-weight:500;color:var(--t);margin-bottom:4px">What does Ceribus do?</div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.7">
+        Ceribus is short for <em>ceteris paribus</em> — Latin for "all else being equal." Pick a category, describe what you want to forecast, and tune the variables. The AI gives you a point estimate, a confidence range, and a breakdown of what's driving the outcome — so you can reason about the future, not just guess.
+      </div>
+    </div>
+  </div>
+
   <div class="cat-grid" id="catGrid">
     <div class="cat-card active" data-cat="movie" onclick="selCat(this)"><span class="cat-icon">🎬</span><div class="cat-name">Movie</div><div class="cat-metric">Box office gross</div></div>
     <div class="cat-card" data-cat="book" onclick="selCat(this)"><span class="cat-icon">📖</span><div class="cat-name">Book</div><div class="cat-metric">Copies sold</div></div>
@@ -434,34 +444,58 @@ const PROXY_URL = 'https://ceribus-proxy.ajaygupta76.workers.dev';
 
 const PRESETS = {
   movie:{metric:'Worldwide box office gross',unit:'INR',context:'Total theatrical run, worldwide',vars:[
-    {name:'Director reputation',val:60},{name:'Cast star power',val:55},{name:'Production budget',val:50},
-    {name:'Script quality',val:65},{name:'Marketing spend',val:55},{name:'OTT deal value',val:50},
-    {name:'Franchise recognition',val:50},{name:'BookMyShow score',val:50},{name:'Rotten Tomatoes',val:50}
+    {name:'Director reputation',val:60},
+    {name:'Cast star power',val:55},
+    {name:'Production budget',val:50,hint:'e.g. ₹200 Cr, ₹500 Cr — use Value mode for actual figure'},
+    {name:'Script quality',val:65},
+    {name:'Marketing spend',val:55,hint:'e.g. ₹80 Cr — use Value mode for actual spend'},
+    {name:'OTT deal value',val:50,hint:'Value of streaming rights sold e.g. ₹150 Cr — higher = platforms are confident'},
+    {name:'Franchise recognition',val:50,hint:'How well known is the IP? High = sequel/remake, Low = original'},
+    {name:'BookMyShow score',val:50,hint:'Pre-release audience interest score out of 10 — use Value mode e.g. 8.9'},
+    {name:'Rotten Tomatoes',val:50,hint:'Critic score % — use Value mode e.g. 92%'}
   ]},
   book:{metric:'First-year copies sold',unit:'copies',context:'Global, physical + digital combined',vars:[
-    {name:'Author track record',val:60},{name:'Average sales of the genre',val:55},
-    {name:'Goodreads score',val:65},{name:'Topic relevance to readers',val:60},{name:'Amazon searches',val:50}
+    {name:'Author track record',val:60,hint:'How well have their previous books sold? First-time author = low'},
+    {name:'Average sales of the genre',val:55,hint:'Is this genre hot right now? e.g. self-help is strong, poetry is niche'},
+    {name:'Goodreads score',val:65,hint:'Pre-release or early reader rating — use Value mode e.g. 4.2'},
+    {name:'Topic relevance to readers',val:60,hint:'Is this topic trending or evergreen? e.g. AI books are very relevant right now'},
+    {name:'Amazon searches',val:50,hint:'Search volume for this topic or author on Amazon — high = strong demand signal'}
   ]},
   company:{metric:'12-month EBITDA',unit:'USD',context:'First full fiscal year',vars:[
-    {name:'Last year growth',val:55},{name:'Industry average growth',val:50},
-    {name:'Competitive position',val:55},{name:'Expected GDP growth',val:50},
-    {name:'CEO track record',val:60},{name:'Amazon product reviews',val:50},
-    {name:'Hiring intensity on LinkedIn',val:50},{name:'Glassdoor rating',val:55}
+    {name:'Last year growth',val:55,hint:'Revenue growth last fiscal year — use Value mode e.g. 32%'},
+    {name:'Industry average growth',val:50,hint:'What is the sector growing at? e.g. Indian SaaS avg 28% — use Value mode'},
+    {name:'Competitive position',val:55,hint:'Market share rank — are they #1, a challenger, or a niche player?'},
+    {name:'Expected GDP growth',val:50,hint:'Projected GDP growth of primary market e.g. 6.5% India — use Value mode'},
+    {name:'CEO track record',val:60,hint:'Has this CEO scaled a company before? High = proven operator'},
+    {name:'Amazon product reviews',val:50,hint:'Average star rating on Amazon — use Value mode e.g. 4.3 stars'},
+    {name:'Hiring intensity on LinkedIn',val:50,hint:'Number of open roles posted recently — more hiring = strong growth signal'},
+    {name:'Glassdoor rating',val:55,hint:'Employee satisfaction score — use Value mode e.g. 3.8 out of 5'}
   ]},
   politics:{metric:'Seats won in election',unit:'seats',context:'General election, all constituencies',vars:[
-    {name:'Seats in last election',val:60},{name:'% of seats participating in',val:55},
-    {name:'Participating voter %',val:55},{name:'Media analyst views',val:50},
-    {name:'Social media positivity',val:50},{name:'Google search popularity',val:50}
+    {name:'Seats in last election',val:60,hint:'How many seats did this party win last time? Use Value mode e.g. 282'},
+    {name:'% of seats participating in',val:55,hint:'What % of total seats is this party contesting? Use Value mode e.g. 85%'},
+    {name:'Participating voter %',val:55,hint:'Expected voter turnout in contested constituencies — use Value mode e.g. 67%'},
+    {name:'Media analyst views',val:50,hint:'Overall media sentiment — are analysts predicting a win, loss, or split?'},
+    {name:'Social media positivity',val:50,hint:'Net positive sentiment on Twitter/X and Instagram for this party'},
+    {name:'Google search popularity',val:50,hint:'Relative search volume vs other parties — high = public interest and awareness'}
   ]},
   team:{metric:'Win probability',unit:'%',context:'Single match result',vars:[
-    {name:'Win rate last 5 games',val:60},{name:'Win rate vs opposition last 5',val:55},
-    {name:'Win rate at venue',val:55},{name:'Form of top 3 players',val:65},
-    {name:'Team world ranking',val:60},{name:'Opposition world ranking',val:45}
+    {name:'Win rate last 5 games',val:60,hint:'How many of their last 5 games did they win? Use Value mode e.g. 3/5'},
+    {name:'Win rate vs opposition last 5',val:55,hint:'Head-to-head record against this specific opponent — use Value mode e.g. 2/5'},
+    {name:'Win rate at venue',val:55,hint:'How often do they win at this specific ground? Use Value mode e.g. 4/6'},
+    {name:'Form of top 3 players',val:65,hint:'Are the key players in form, injured, or rested? High = all firing'},
+    {name:'Team world ranking',val:60,hint:'Current ICC/FIFA ranking — use Value mode e.g. Rank 1. Lower number = stronger team'},
+    {name:'Opposition world ranking',val:45,hint:'Opponent\'s current ranking — use Value mode e.g. Rank 3. Lower = tougher opposition'}
   ]},
   music:{metric:'Album Spotify streams',unit:'streams',context:'Till date streams',vars:[
-    {name:'Raw talent',val:72},{name:'Originality',val:60},{name:'Social following',val:75},
-    {name:'Label support',val:65},{name:'Release timing',val:65},{name:'Age of artist',val:50},
-    {name:'No of previous albums',val:50},{name:'Streams of last album',val:50}
+    {name:'Raw talent',val:72},
+    {name:'Originality',val:60},
+    {name:'Social following',val:75,hint:'Combined followers across Instagram, TikTok, YouTube — high = large existing fanbase'},
+    {name:'Label support',val:65,hint:'Is this a major label (Universal, Sony) or indie? Major = more marketing muscle'},
+    {name:'Release timing',val:65,hint:'Is the release timed well? e.g. avoiding a big competing drop, releasing on a Friday'},
+    {name:'Age of artist',val:50,hint:'Use Value mode — e.g. 24. Younger artists tend to have longer streaming longevity'},
+    {name:'No of previous albums',val:50,hint:'Use Value mode — e.g. 2. More albums = established fanbase but also saturation risk'},
+    {name:'Streams of last album',val:50,hint:'Use Value mode — e.g. 2.4B. Strong predictor of next album performance'}
   ]}
 };
 
@@ -489,9 +523,9 @@ function confNote(c){
 function pn(s){if(!s)return NaN;return parseFloat(s.toString().replace(/[^0-9.\-]/g,''));}
 
 // ── VAR BOX ────────────────────────────────────────────────────────────────
-function varBox(ns,i,name,val,absVal,isAbs){
-  const slHtml=`<div class="slider-row"><input type="range" min="0" max="100" step="1" value="${val}" style="flex:1" oninput="${ns}_sIn(${i},this.value)"/><span class="slider-val" id="${ns}_sv${i}">${val}</span></div>`;
-  const abHtml=`<input class="abs-field" type="text" value="${absVal||''}" id="${ns}_av${i}" placeholder="e.g. ₹300 Cr, 22, 20B, 89/100…" oninput="${ns}_aIn(${i},this.value)"/><div class="abs-hint">Exact value — used directly in the forecast</div>`;
+function varBox(ns,i,name,val,absVal,isAbs,hint){
+  const slHtml=`<div class="slider-row"><input type="range" min="0" max="100" step="1" value="${val}" style="flex:1" oninput="${ns}_sIn(${i},this.value)"/><span class="slider-val" id="${ns}_sv${i}">${val}</span></div>${hint?`<div class="abs-hint" style="margin-top:5px">${hint}</div>`:''}`;
+  const abHtml=`<input class="abs-field" type="text" value="${absVal||''}" id="${ns}_av${i}" placeholder="e.g. ₹300 Cr, 22, 20B, 89/100…" oninput="${ns}_aIn(${i},this.value)"/><div class="abs-hint">${hint||'Exact value — used directly in the forecast'}</div>`;
   return `<div class="var-box"><div class="var-box-header"><span class="var-box-name" title="${name}">${name}</span><div class="input-toggle"><button class="it-sl ${!isAbs?'on':''}" onclick="${ns}_setM(${i},'slider')">Slider</button><button class="it-vl ${isAbs?'on':''}" onclick="${ns}_setM(${i},'abs')">Value</button></div></div>${isAbs?abHtml:slHtml}</div>`;
 }
 
@@ -548,7 +582,7 @@ function renderPSliders(){
     document.getElementById('pubBannerTxt').textContent='Using published Lab model — '+vars.length+' variables';
     title.innerHTML='Tune variables <span class="pub-lbl">Published</span>';
   } else {banner.classList.remove('show'); title.textContent='Tune variables';}
-  document.getElementById('p_sliders').innerHTML=vars.map((v,i)=>varBox('p',i,v.name,v.val||50,v.absVal||'',pModes[i]==='abs')).join('');
+  document.getElementById('p_sliders').innerHTML=vars.map((v,i)=>varBox('p',i,v.name,v.val||50,v.absVal||'',pModes[i]==='abs',v.hint||'')).join('');
 }
 
 window.p_setM=function(i,m){pModes[i]=m;const vars=getPVL();if(vars[i])vars[i].absVal=vars[i].absVal||'';renderPSliders();};
@@ -627,7 +661,7 @@ function lRenderSliders(){
   document.getElementById('l_scard').style.display=named.length?'block':'none';
   document.getElementById('l_sliders').innerHTML=named.map(v=>{
     const i=labVars.indexOf(v);
-    return varBox('l',i,v.name,v.val||50,v.absVal||'',labModes[i]==='abs');
+    return varBox('l',i,v.name,v.val||50,v.absVal||'',labModes[i]==='abs',v.hint||'');
   }).join('');
 }
 
